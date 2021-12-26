@@ -6,7 +6,7 @@ services:
     networks:
       - t2_proxy
     env_file:
-      - cf-ddns.env
+      - ${HOMESERVER_DIR}/cf-ddns/cf-ddns.env
     restart: unless-stopped
     security_opt:
       - no-new-privileges:true

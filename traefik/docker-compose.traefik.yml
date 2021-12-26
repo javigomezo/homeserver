@@ -48,6 +48,8 @@ services:
       - --pilot.token=${PILOT_TOKEN}
       # For cockpit
       - --serverstransport.insecureskipverify=true
+    env_file:
+      - ${HOMESERVER_DIR}/traefik/traefik.env
     volumes:
       - ${BASE_DIR}/traefik/data/rules:/rules
       - ${BASE_DIR}/traefik/data/acme/acme.json:/acme.json
