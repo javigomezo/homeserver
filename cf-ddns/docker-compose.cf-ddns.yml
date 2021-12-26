@@ -1,0 +1,13 @@
+version: "3.7"
+services:
+  cf-ddns:
+    image: oznu/cloudflare-ddns:${IMAGETAG_CFDDNS}
+    container_name: cf-ddns
+    networks:
+      - t2_proxy
+    env_file:
+      - cf-ddns.env
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+
