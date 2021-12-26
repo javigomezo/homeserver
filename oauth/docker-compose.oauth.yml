@@ -1,0 +1,24 @@
+version: "3.7"
+services:
+  oauth:
+    image: thomseddon/traefik-forward-auth:${IMAGETAG_OAUTH}
+    container_name: oauth
+    networks:
+      - t2_proxy
+    env_file:
+      - ${HOMESERVER_DIR}/oauth/oauth.env
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.oauth-rtr.entrypoints=https"
+      - "traefik.http.routers.oauth-rtr.rule=Host(`oauth.${FQDN}`)"
+      - "traefik.http.routers.oauth-rtr.tls=true"
+      ## HTTP Services
+      - "traefik.http.routers.oauth-rtr.service=oauth-svc"
+      - "traefik.http.services.oauth-svc.loadbalancer.server.port=4181"
+      ## Middlewares
+      - "traefik.http.routers.oauth-rtr.middlewares=chain-oauth@file"
+
