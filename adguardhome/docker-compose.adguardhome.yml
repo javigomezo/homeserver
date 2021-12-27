@@ -1,0 +1,28 @@
+version: "3.7"
+services:
+  adguardhome:
+    image: adguard/adguardhome:${IMAGETAG_ADGUARDHOME}
+    container_name: adguardhome
+    networks:
+      - t2_proxy
+    volumes:
+      - ${BASE_DIR}/adguard/data/workdir:/opt/adguardhome/work
+      - ${BASE_DIR}/adguard/data/config:/opt/adguardhome/conf
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.adguard-rtr.entrypoints=http,https"
+      - "traefik.http.routers.adguard-rtr.rule=Host(`adguard.${FQDN}`)"
+      ## UDP Routers
+      - "traefik.udp.routers.adguard-rtr.entrypoints=dns"
+      - "traefik.udp.routers.adguard-rtr.service=dns-svc"
+      ## Middlewares
+      - "traefik.http.routers.adguard-rtr.middlewares=chain-oauth@file"
+      ## HTTP Services
+      - "traefik.http.routers.adguard-rtr.service=adguard-svc"
+      - "traefik.http.services.adguard-svc.loadbalancer.server.port=3000"
+      ## DNS Services
+      - "traefik.udp.services.dns-svc.loadbalancer.server.port=53"

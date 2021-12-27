@@ -17,6 +17,7 @@ services:
       - --entryPoints.https.address=:443
       - --entryPoints.minecraft.address=:25565
       - --entryPoints.teamspeak.address=:9987/udp
+      - --entryPoints.dns.address=:53/udp
       - --entrypoints.teamspeak.udp.timeout=10s
       - --experimental.http3=true
       - --entrypoints.https.http3=true
@@ -61,6 +62,10 @@ services:
     security_opt:
       - no-new-privileges:true
     ports:
+      - target: 53
+        published: 53
+        protocol: udp
+        mode: host
       - target: 80
         published: 80
         protocol: tcp
