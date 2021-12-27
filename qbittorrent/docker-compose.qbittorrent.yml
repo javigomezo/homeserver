@@ -1,0 +1,23 @@
+version: "3.7"
+services:
+  qbittorrent:
+    image: ghcr.io/linuxserver/qbittorrent:${IMAGETAG_QBITTORRENT}
+    container_name: qbittorrent
+    env_file:
+      - ${HOMESERVER_DIR}/qbittorrent/qbittorrent.env
+    networks:
+      - t2_proxy
+    volumes:
+      - ${BASE_DIR}/qbittorrent/data/config:/config 
+      - ${BASE_DIR}/qbittorrent/data/downloads:/downloads 
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.qbittorrent-rtr.entrypoints=http,https"
+      - "traefik.http.routers.qbittorrent-rtr.rule=Host(`qbittorrent.${FQDN}`)"
+      - "traefik.http.routers.qbittorrent-rtr.middlewares=chain-oauth@file"
+      - "traefik.http.routers.qbittorrent-rtr.service=qbittorrent-svc"
+      - "traefik.http.services.qbittorrent-svc.loadbalancer.server.port=8080"
+
