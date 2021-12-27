@@ -1,0 +1,25 @@
+version: "3.7"
+services:
+  overseerr:
+    image: ghcr.io/linuxserver/overseerr:${IMAGETAG_OVERSEERR}
+    container_name: overseerr
+    env_file:
+      - ${HOMESERVER_DIR}/overseerr/overseerr.env
+    networks:
+      - t2_proxy
+    volumes:
+      - ${BASE_DIR}/overseerr/data/config:/config
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    labels:
+      - "traefik.enable=true"
+      ## Middlewares
+      #- "traefik.http.routers.overseerr-rtr.middlewares=chain-oauth@file"
+      ## HTTP Routers Auth
+      - "traefik.http.routers.overseerr-rtr.entrypoints=http,https"
+      - "traefik.http.routers.overseerr-rtr.rule=Host(`overseerr.${FQDN}`)"
+      ## HTTP Services
+      - "traefik.http.routers.overseerr-rtr.service=overseerr-svc"
+      - "traefik.http.services.overseerr-svc.loadbalancer.server.port=5055"
+
