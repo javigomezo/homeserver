@@ -1,0 +1,21 @@
+version: "3.7"
+services:
+  prowlarr:
+    image: ghcr.io/linuxserver/prowlarr:${IMAGETAG_PROWLARR}
+    container_name: prowlarr
+    env_file:
+      - ${HOMESERVER_DIR}/prowlarr/prowlarr.env
+    networks:
+      - t2_proxy
+    volumes:
+      - ${BASE_DIR}/prowlarr/data/config:/config
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.prowlarr-rtr.entrypoints=http,https"
+      - "traefik.http.routers.prowlarr-rtr.rule=Host(`prowlarr.${FQDN}`)"
+      - "traefik.http.routers.prowlarr-rtr.middlewares=chain-oauth@file"
+      - "traefik.http.routers.prowlarr-rtr.service=prowlarr-svc"
+      - "traefik.http.services.prowlarr-svc.loadbalancer.server.port=9696"
