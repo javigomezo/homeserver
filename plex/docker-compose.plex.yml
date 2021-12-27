@@ -21,7 +21,6 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.plex-rtr.entrypoints=http,https"
       - "traefik.http.routers.plex-rtr.rule=Host(`plex.${FQDN}`)"
-      #- "traefik.docker.network=plex_net"
       ## Middlewares
       - "traefik.http.routers.plex-rtr.middlewares=chain-plex@file"
       ## HTTP Services
