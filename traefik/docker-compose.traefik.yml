@@ -17,7 +17,8 @@ services:
       - --entryPoints.https.address=:443
       - --entryPoints.minecraft.address=:25565
       - --experimental.http3=true
-      - --entrypoints.https.enablehttp3=true
+      - --entrypoints.https.http3=true
+      - --entrypoints.https.http3.advertisedport=443
       - --api=true
       - --api.insecure=true
       - --log=true
