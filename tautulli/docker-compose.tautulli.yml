@@ -1,0 +1,25 @@
+version: "3.7"
+services:
+  tautulli:
+    image: ghcr.io/linuxserver/tautulli:${IMAGETAG_TAUTULLI}
+    container_name: tautulli
+    networks:
+      - t2_proxy
+    env_file:
+      - ${HOMESERVER_DIR}/tautulli/tautulli.env
+    volumes:
+      - ${BASE_DIR}/tautulli/data/config:/config
+      - ${BASE_DIR}/plex/data/library/Library/Application Support/Plex Media Server/Logs:/logs:ro
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.tautulli-rtr.entrypoints=http,https"
+      - "traefik.http.routers.tautulli-rtr.rule=Host(`tautulli.${FQDN}`)"
+      ## Middlewares
+      - "traefik.http.routers.tautulli-rtr.middlewares=secHeaders@file"
+      ## HTTP Services
+      - "traefik.http.routers.tautulli-rtr.service=tautulli-svc"
+      - "traefik.http.services.tautulli-svc.loadbalancer.server.port=8181"
