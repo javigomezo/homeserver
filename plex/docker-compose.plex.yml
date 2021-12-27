@@ -1,0 +1,30 @@
+version: "3.7"
+services:
+  plex:
+    image: ghcr.io/linuxserver/plex:${IMAGETAG_PLEX}
+    container_name: plex
+    networks:
+      t2_proxy:
+        ipv4_address: 10.0.123.150
+    env_file:
+      - ${HOMESERVER_DIR}/plex/plex.env
+    volumes:
+      - ${BASE_DIR}/plex/data/library:/config
+      - ${MEDIA_DIR}:/data
+    devices:
+      - /dev/dri:/dev/dri
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    labels:
+      ## HTTP Routers
+      - "traefik.enable=true"
+      - "traefik.http.routers.plex-rtr.entrypoints=http,https"
+      - "traefik.http.routers.plex-rtr.rule=Host(`plex.${FQDN}`)"
+      #- "traefik.docker.network=plex_net"
+      ## Middlewares
+      - "traefik.http.routers.plex-rtr.middlewares=chain-plex@file"
+      ## HTTP Services
+      - "traefik.http.routers.plex-rtr.service=plex-svc"
+      - "traefik.http.services.plex-svc.loadbalancer.server.port=32400"
+    
