@@ -1,0 +1,20 @@
+version: "3.7"
+services:
+  teamspeak:
+    image: teamspeak:${IMAGETAG_TEAMSPEAK}
+    container_name: teamspeak
+    env_file:
+      - ${HOMESERVER_DIR}/teamspeak/teamspeak.env
+    networks:
+      - t2_proxy
+    volumes:
+      - ${BASE_DIR}/teamspeak/data:/var/ts3server/
+      - ${BASE_DIR}/teamspeak/logs:/var/ts3server/logs
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    labels:
+      - "traefik.enable=true"
+      - "traefik.udp.routers.ts3-rtr.entrypoints=teamspeak"
+      - "traefik.udp.routers.ts3-rtr.service=ts3-svc"
+      - "traefik.udp.services.ts3-svc.loadbalancer.server.port=9987"
