@@ -1,0 +1,15 @@
+version: "3.7"
+services:
+  docker-gc:
+    image: clockworksoul/docker-gc-cron:${IMAGETAG_DOCKERGC}
+    container_name: docker-gc
+    networks:
+      - socket_proxy
+    env_file:
+      - ${HOMESERVER_DIR}/docker-gc/docker-gc.env
+    volumes:
+      - ${HOMESERVER_DIR}/docker-gc/docker-gc-exclude:/etc/docker-gc-exclude
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+
