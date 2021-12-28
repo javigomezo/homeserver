@@ -1,0 +1,26 @@
+version: "3.7"
+services:
+  scrutiny:
+    image: analogj/scrutiny:latest
+    container_name: scrutiny
+    networks:
+      - t2_proxy
+    env_file:
+      - ${HOMESERVER_DIR}/scrutiny/scrutiny.env
+    volumes:
+      - /run/udev:/run/udev:ro
+    devices:
+      - /dev/nvme0
+    cap_add:
+      - SYS_RAWIO
+      - SYS_ADMIN
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.scrutiny-rtr.entrypoints=http,https"
+      - "traefik.http.routers.scrutiny-rtr.rule=Host(`scrutiny.${FQDN}`)"
+      - "traefik.http.routers.scrutiny-rtr.service=scrutiny-svc"
+      - "traefik.http.routers.scrutiny-rtr.middlewares=chain-oauth@file"
+      - "traefik.http.services.scrutiny-svc.loadbalancer.server.port=8080"
