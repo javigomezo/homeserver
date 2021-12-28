@@ -26,16 +26,16 @@ services:
     - CONTAINERS=1 # Traefik, portainer, etc.
     - DISTRIBUTION=0
     - EXEC=0
-    - IMAGES=0 # Change to 1 for Portainer
-    - INFO=0 # Change to 1 for Portainer
-    - NETWORKS=0 # Change to 1 for Portainer
+    - IMAGES=1 # Change to 1 for Portainer
+    - INFO=1 # Change to 1 for Portainer
+    - NETWORKS=1 # Change to 1 for Portainer
     - NODES=0
     - PLUGINS=0
-    - SERVICES=0 # Change to 1 for Portainer
+    - SERVICES=1 # Change to 1 for Portainer
     - SESSION=0
     - SWARM=0
     - SYSTEM=0
-    - TASKS=0 # Change to 1 for Portaienr
-    - VOLUMES=0 # Change to 1 for Portainer
+    - TASKS=1 # Change to 1 for Portainer
+    - VOLUMES=1 # Change to 1 for Portainer
     restart: unless-stopped
 
