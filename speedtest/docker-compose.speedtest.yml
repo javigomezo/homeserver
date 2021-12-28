@@ -1,0 +1,21 @@
+version: "3.7"
+services:
+  speedtest:
+    image: henrywhitaker3/speedtest-tracker:${IMAGETAG_SPEEDTEST}
+    container_name: speedtest
+    networks:
+      - t2_proxy
+    env_file:
+      - ${HOMESERVER_DIR}/speedtest/speedtest.env
+    volumes:
+      - ${BASE_DIR}/speedtest/data/config:/config
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.speedtest-rtr.entrypoints=http,https"
+      - "traefik.http.routers.speedtest-rtr.rule=Host(`speedtest.${FQDN}`)"
+      - "traefik.http.routers.speedtest-rtr.service=speedtest-svc"
+      - "traefik.http.routers.speedtest-rtr.middlewares=chain-oauth@file"
+      - "traefik.http.services.speedtest-svc.loadbalancer.server.port=80"
