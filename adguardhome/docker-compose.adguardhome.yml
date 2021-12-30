@@ -4,7 +4,8 @@ services:
     image: adguard/adguardhome:${IMAGETAG_ADGUARDHOME}
     container_name: adguardhome
     networks:
-      - t2_proxy
+      t2_proxy:
+        ipv4_address: 10.0.123.53
     volumes:
       - ${BASE_DIR}/adguard/data/workdir:/opt/adguardhome/work
       - ${BASE_DIR}/adguard/data/config:/opt/adguardhome/conf
