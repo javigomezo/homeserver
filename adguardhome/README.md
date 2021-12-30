@@ -1,0 +1,3 @@
+# AdGuardHome
+
+[AdGuard Home](https://github.com/AdguardTeam/AdGuardHome) is a network-wide software for blocking ads & tracking.
