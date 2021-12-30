@@ -1,0 +1,13 @@
+version: "3.7"
+services:
+  watchtower:
+    image: containrrr/watchtower:${IMAGETAG_WATCHTOWER}
+    container_name: watchtower
+    networks:
+      - socket_proxy
+    env_file:
+      - ${HOMESERVER_DIR}/watchtower/watchtower.env
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+

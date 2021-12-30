@@ -1,0 +1,21 @@
+version: "3.7"
+services:
+  xteve:
+    image: tnwhitwell/xteve:${IMAGETAG_XTEVE}
+    container_name: xteve
+    networks:
+      - t2_proxy
+    volumes:
+      - ${BASE_DIR}/xteve/data/config:/config
+      - ${BASE_DIR}/xteve/data/tmp:/tmp/xteve
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.xteve-rtr.entrypoints=http,https"
+      - "traefik.http.routers.xteve-rtr.rule=Host(`xteve.${FQDN}`)"
+      - "traefik.http.routers.xteve-rtr.middlewares=chain-oauth@file"
+      - "traefik.http.routers.xteve-rtr.service=xteve-svc"
+      - "traefik.http.services.xteve-svc.loadbalancer.server.port=34400"
+

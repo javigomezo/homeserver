@@ -1,0 +1,30 @@
+version: "3.7"
+services:
+  wireguard:
+    image: linuxserver/wireguard:${IMAGETAG_WIREGUARD}
+    container_name: wireguard
+    networks:
+      - t2_proxy
+    env_file:
+      - ${HOMESERVER_DIR}/wireguard/wireguard.env
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    dns:
+      - 10.0.123.53
+    volumes:
+      - ${BASE_DIR}/wireguard/data/config:/config    
+      - /lib/modules:/lib/modules
+    sysctls:
+      - net.ipv4.conf.all.src_valid_mark=1
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    labels:
+      - "traefik.enable=true"
+      ## UDP Routers
+      - "traefik.udp.routers.wireguard-rtr.entrypoints=wireguard"
+      - "traefik.udp.routers.wireguard-rtr.service=wireguard-svc"
+      ## DNS Services
+      - "traefik.udp.services.wireguard-svc.loadbalancer.server.port=51820"
+

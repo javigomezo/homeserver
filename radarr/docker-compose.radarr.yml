@@ -1,0 +1,34 @@
+version: "3.7"
+services:
+  radarr:
+    image: ghcr.io/linuxserver/radarr:${IMAGETAG_RADARR}
+    container_name: radarr
+    env_file:
+      - ${HOMESERVER_DIR}/radarr/radarr.env
+    networks:
+      - t2_proxy
+    volumes:
+      - ${BASE_DIR}/radarr/data/config:/config
+      - ${BASE_DIR}/qbittorrent/data/downloads:/downloads
+      - ${MEDIA_DIR}:/data
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers no Auth
+      - "traefik.http.routers.radarr-rtr-bypass.entrypoints=http,https"
+      - "traefik.http.routers.radarr-rtr-bypass.rule=Host(`radarr.${FQDN}`) && (Headers(`X-Api-Key`, `${RADARR_APIKEY}`) || Query(`apikey`, `${RADARR_APIKEY}`))"
+      - "traefik.http.routers.radarr-rtr-bypass.priority=100"
+      ## HTTP Routers Auth
+      - "traefik.http.routers.radarr-rtr.entrypoints=http,https"
+      - "traefik.http.routers.radarr-rtr.rule=Host(`radarr.${FQDN}`)"
+      - "traefik.http.routers.radarr-rtr.priority=99"
+      ## Middlewares
+      - "traefik.http.routers.radarr-rtr-bypass.middlewares=chain-no-oauth@file"
+      - "traefik.http.routers.radarr-rtr.middlewares=chain-oauth@file"
+      ## HTTP Services
+      - "traefik.http.routers.radarr-rtr.service=radarr-svc"
+      - "traefik.http.routers.radarr-rtr-bypass.service=radarr-svc"
+      - "traefik.http.services.radarr-svc.loadbalancer.server.port=7878"
+

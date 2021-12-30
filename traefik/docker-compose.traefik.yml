@@ -1,0 +1,110 @@
+version: "3.7"
+
+services:
+  traefik:
+    image: traefik:${IMAGETAG_TRAEFIK}
+    container_name: traefik
+    networks:
+      - t2_proxy
+      - socket_proxy
+    restart: unless-stopped
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    command:
+      - --global.checkNewVersion=true
+      - --global.sendAnonymousUsage=false
+      - --entryPoints.http.address=:80
+      - --entryPoints.https.address=:443
+      - --entryPoints.minecraft.address=:25565
+      - --entryPoints.teamspeak.address=:9987/udp
+      - --entryPoints.dns.address=:53/udp
+      - --entryPoints.wireguard.address=:51820/udp
+      - --entrypoints.teamspeak.udp.timeout=10s
+      - --experimental.http3=true
+      - --entrypoints.https.http3=true
+      - --entrypoints.https.http3.advertisedport=443
+      - --api=true
+      - --api.insecure=true
+      - --log=true
+      - --log.level=ERROR # (Default: error) DEBUG, INFO, WARN, ERROR, FATAL, PANIC
+      - --accessLog=true
+      - --accessLog.filePath=/traefik.log
+      - --accessLog.bufferingSize=100 # Configuring a buffer of 100 lines
+      - --accessLog.filters.statusCodes=400-499
+      - --providers.docker=true
+      - --providers.docker.endpoint=tcp://socket-proxy:2375
+      - --providers.docker.defaultrule=Host(`{{ index .Labels "com.docker.compose.service" }}.${FQDN}`)
+      - --providers.docker.exposedByDefault=false
+      # The line below turns on TLS by default and specifies TLS standards to use.
+      - --entrypoints.https.http.tls.options=default
+      - --providers.docker.network=t2_proxy
+      - --providers.docker.swarmMode=false
+      - --providers.file.directory=/rules # Load dynamic configuration from one or more .toml or .yml files in a directory.
+      - --providers.file.filename=/rules/dynamic.yml # Load dynamic configuration from a file.
+      - --providers.file.watch=true # Only works on top level files in the rules folder
+      - --entrypoints.https.http.tls.certresolver=dns-ovh
+        #- --certificatesResolvers.dns-ovh.acme.caServer=https://acme-staging-v02.api.letsencrypt.org/directory
+      - --certificatesResolvers.dns-ovh.acme.dnschallenge=true
+      - --certificatesResolvers.dns-ovh.acme.dnschallenge.provider=ovh
+      - --certificatesResolvers.dns-ovh.acme.email=${EMAIL}
+      - --certificatesResolvers.dns-ovh.acme.storage=/acme.json
+      - --certificatesResolvers.dns-ovh.acme.dnschallenge.delaybeforecheck=90
+      - --certificatesResolvers.dns-ovh.acme.dnsChallenge.resolvers=1.1.1.1:53,8.8.8.8:53
+      - --pilot.token=${PILOT_TOKEN}
+      # For cockpit
+      - --serverstransport.insecureskipverify=true
+    env_file:
+      - ${HOMESERVER_DIR}/traefik/traefik.env
+    volumes:
+      - ${BASE_DIR}/traefik/data/rules:/rules
+      - ${BASE_DIR}/traefik/data/acme/acme.json:/acme.json
+      - ${BASE_DIR}/traefik/logs/traefik.log:/traefik.log
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - target: 53
+        published: 53
+        protocol: udp
+        mode: host
+      - target: 80
+        published: 80
+        protocol: tcp
+        mode: host
+      - target: 443
+        published: 443
+        protocol: tcp
+        mode: host
+      - target: 443
+        published: 443
+        protocol: udp
+      - target: 9987
+        published: 9987
+        protocol: udp
+        mode: host
+      - target: 25565
+        published: 25565
+        protocol: tcp
+        mode: host
+      - target: 51820
+        published: 51820
+        protocol: udp
+        mode: host
+    labels:
+      - "traefik.enable=true"
+      # HTTP-to-HTTPS Redirect
+      - "traefik.http.routers.http-catchall.entrypoints=http"
+      - "traefik.http.routers.http-catchall.rule=HostRegexp(`{host:.+}`)"
+        #- "traefik.http.routers.http-catchall.middlewares=redirect-to-https"
+      - "traefik.http.routers.http-catchall.middlewares=secHeaders@file"
+      # HTTP Routers
+      - "traefik.http.routers.traefik-rtr.entrypoints=https"
+      - "traefik.http.routers.traefik-rtr.rule=Host(`traefik.${FQDN}`)"
+      - "traefik.http.routers.traefik-rtr.tls=true"
+      #- "traefik.http.routers.traefik-rtr.tls.certresolver=dns-ovh" # Comment out this line after first run of traefik to force the use of wildcard certs
+      - "traefik.http.routers.traefik-rtr.tls.domains[0].main=${FQDN}"
+      - "traefik.http.routers.traefik-rtr.tls.domains[0].sans=*.${FQDN}"
+      # Services - API
+      - "traefik.http.routers.traefik-rtr.service=api@internal"
+      ## Middlewares
+      - "traefik.http.routers.traefik-rtr.middlewares=chain-oauth@file"

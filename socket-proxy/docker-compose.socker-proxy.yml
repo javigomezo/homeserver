@@ -1,0 +1,41 @@
+version: "3.7"
+services:
+  socket-proxy:
+    image: tecnativa/docker-socket-proxy:${IMAGETAG_SOCKET}
+    container_name: socket-proxy
+    networks:
+      socket_proxy:
+        ipv4_address: 10.0.124.254
+    privileged: true
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    environment:
+    - LOG_LEVEL=info # debug,info,notice,warning,err,crit,alert,emerg
+    - EVENTS=1
+    - PING=1
+    - VERSION=1
+    ## Revoked by Default
+    # Security critical
+    - AUTH=0
+    - SECRETS=0
+    - POST=1 # Ouroboros
+    # Not always needed
+    - BUILD=0
+    - COMMIT=0
+    - CONFIGS=0
+    - CONTAINERS=1 # Traefik, portainer, etc.
+    - DISTRIBUTION=0
+    - EXEC=0
+    - IMAGES=1 # Change to 1 for Portainer
+    - INFO=1 # Change to 1 for Portainer
+    - NETWORKS=1 # Change to 1 for Portainer
+    - NODES=0
+    - PLUGINS=0
+    - SERVICES=1 # Change to 1 for Portainer
+    - SESSION=0
+    - SWARM=0
+    - SYSTEM=0
+    - TASKS=1 # Change to 1 for Portainer
+    - VOLUMES=1 # Change to 1 for Portainer
+    restart: unless-stopped
+

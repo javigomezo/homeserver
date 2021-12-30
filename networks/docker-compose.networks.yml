@@ -1,0 +1,15 @@
+version: "3.7"
+
+networks:
+  t2_proxy:
+    name: t2_proxy
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.0.123.0/24
+  socket_proxy:
+    name: socket_proxy
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.0.124.0/24
