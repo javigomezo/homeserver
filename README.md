@@ -34,7 +34,7 @@ dc ()
 {
     dir=$(pwd);
     cd /home/javier/homeserver;
-    docker-compose $(find '/home/javier/homeserver/' -name 'docker-compose*.yml' -type f -printf '%p\t%d\n'  2>/dev/null | sort -n -k2 | cut -f 1 | awk '{print "-f "$0}') $@
+    docker-compose $(find '${HOMESERVER_DIR}' -name 'docker-compose*.yml' -type f -printf '%p\t%d\n'  2>/dev/null | sort -n -k2 | cut -f 1 | awk '{print "-f "$0}') $@
     cd $dir;
 }
 ```
