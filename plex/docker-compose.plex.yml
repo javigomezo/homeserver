@@ -11,6 +11,7 @@ services:
     volumes:
       - ${BASE_DIR}/plex/data/library:/config
       - ${MEDIA_DIR}:/data
+      - /dev/shm:/transcoding
     devices:
       - /dev/dri:/dev/dri
     restart: unless-stopped
