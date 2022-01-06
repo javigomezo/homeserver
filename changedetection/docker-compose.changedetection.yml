@@ -1,0 +1,21 @@
+version: "3.7"
+services:
+  changedetection:
+    image: ghcr.io/dgtlmoon/changedetection.io:${IMAGETAG_CHANGEDETECTION}
+    container_name: changedetection
+    networks:
+      - t2_proxy
+    env_file:
+      - ${HOMESERVER_DIR}/changedetection/changedetection.env
+    volumes:
+      - ${BASE_DIR}/changedetection/data/:/datastore
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.changedetection-rtr.entrypoints=http,https"
+      - "traefik.http.routers.changedetection-rtr.rule=Host(`changedetection.${FQDN}`)"
+      - "traefik.http.routers.changedetection-rtr.service=changedetection-svc"
+      - "traefik.http.routers.changedetection-rtr.middlewares=chain-oauth@file"
+      - "traefik.http.services.changedetection-svc.loadbalancer.server.port=5000"
