@@ -1,0 +1,21 @@
+version: "3.7"
+services:
+  minecraft:
+    image: itzg/minecraft-server:${IMAGETAG_MINECRAFT}
+    container_name: minecraft
+    env_file:
+      - ${HOMESERVER_DIR}/minecraft/minecraft.env
+    networks:
+      - t2_proxy
+    volumes:
+      - ${BASE_DIR}/minecraft/data/:/data
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    labels:
+      - "traefik.enable=true"
+      - "traefik.tcp.routers.mc-rtr.entrypoints=minecraft"
+      - "traefik.tcp.routers.mc-rtr.rule=HostSNI(`*`)"
+      - "traefik.tcp.routers.mc-rtr.service=mc-svc"
+      - "traefik.tcp.services.mc-svc.loadbalancer.server.port=25565"
+
