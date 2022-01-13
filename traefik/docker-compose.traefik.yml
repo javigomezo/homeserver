@@ -42,14 +42,16 @@ services:
       - --providers.file.directory=/rules # Load dynamic configuration from one or more .toml or .yml files in a directory.
       - --providers.file.filename=/rules/dynamic.yml # Load dynamic configuration from a file.
       - --providers.file.watch=true # Only works on top level files in the rules folder
-      - --entrypoints.https.http.tls.certresolver=dns-ovh
+      - --entrypoints.https.http.tls.certresolver=dns-cloudflare
+      - --entrypoints.https.http.tls.domains[0].main=${FQDN}
+      - --entrypoints.https.http.tls.domains[0].sans=*.${FQDN}
         #- --certificatesResolvers.dns-ovh.acme.caServer=https://acme-staging-v02.api.letsencrypt.org/directory
-      - --certificatesResolvers.dns-ovh.acme.dnschallenge=true
-      - --certificatesResolvers.dns-ovh.acme.dnschallenge.provider=ovh
-      - --certificatesResolvers.dns-ovh.acme.email=${EMAIL}
-      - --certificatesResolvers.dns-ovh.acme.storage=/acme.json
-      - --certificatesResolvers.dns-ovh.acme.dnschallenge.delaybeforecheck=90
-      - --certificatesResolvers.dns-ovh.acme.dnsChallenge.resolvers=1.1.1.1:53,8.8.8.8:53
+      - --certificatesResolvers.dns-cloudflare.acme.dnschallenge=true
+      - --certificatesResolvers.dns-cloudflare.acme.dnschallenge.provider=cloudflare
+      - --certificatesResolvers.dns-cloudflare.acme.email=${EMAIL}
+      - --certificatesResolvers.dns-cloudflare.acme.storage=/acme.json
+      - --certificatesResolvers.dns-cloudflare.acme.dnschallenge.delaybeforecheck=90
+      - --certificatesResolvers.dns-cloudflare.acme.dnsChallenge.resolvers=1.1.1.1:53,8.8.8.8:53
       - --pilot.token=${PILOT_TOKEN}
       # For cockpit
       - --serverstransport.insecureskipverify=true
