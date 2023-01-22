@@ -33,5 +33,5 @@ For consistency, most of the docker images are taken from [linuxserver.io](https
 
 ## TODOs
 
-* ~~ Add ansible playbooks to deploy and maintain current infrastructure and services ~~
+* ~~Add ansible playbooks to deploy and maintain current infrastructure and services~~
 * Improve readme
