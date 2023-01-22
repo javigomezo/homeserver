@@ -1,0 +1,4 @@
+---
+container_name: joplin
+image_tag: latest
+oauth: true

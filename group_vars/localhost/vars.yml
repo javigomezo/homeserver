@@ -1,0 +1,5 @@
+guid: "1000"
+umask: "022"
+linuxserver_registry: "lscr.io/linuxserver"
+main_network: "t2_proxy"
+socket_network: "socket_proxy"

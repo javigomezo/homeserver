@@ -1,0 +1,195 @@
+- name: Setup Raspberry
+  hosts: raspberry
+  gather_facts: true
+  become: true
+  pre_tasks:
+    - name: Install python3
+      raw: apk update && apk add python3
+      tags:
+        - pretask
+  roles:
+    - role: setup/create_user
+      tags:
+        - setup
+    - role: setup/install_docker
+      tags:
+        - setup
+        - install
+    - role: docker/tvheadend
+      tags:
+        - docker
+    - role: docker/adguardhome
+      tags:
+        - docker
+
+- name: Common Playbook
+  hosts: all
+  gather_facts: true
+  become: true
+  roles:
+    - role: security/harden_ssh
+      tags:
+        - security
+    - role: security/security_updates
+      tags:
+        - security
+    - role: system/powersaving
+      tags:
+        - system
+    - role: system/keepalived
+      tags:
+        - system
+
+- name: Main Playbook Homeserver
+  hosts: localhost
+  gather_facts: true
+  become: false
+  roles:
+    ## Network ##
+    - role: docker/network
+      tags:
+        - docker
+        - network
+    - role: docker/socket-proxy
+      tags:
+        - docker
+        - network
+    - role: docker/traefik
+      tags:
+        - docker
+        - network
+    - role: docker/oauth
+      tags:
+        - docker
+        - network
+    - role: docker/adguardhome
+      tags:
+        - docker
+        - network
+        - raspberry
+    - role: docker/cf-ddns
+      tags:
+        - docker
+        - network
+    - role: docker/wireguard
+      tags:
+        - docker
+        - network
+
+    ## Home ##
+    - role: docker/influxdb
+      tags:
+        - docker
+        - home
+    - role: docker/homeassistant
+      tags:
+        - docker
+        - home
+    - role: docker/homarr
+      tags:
+        - docker
+        - home
+    - role: docker/duplicati
+      tags:
+        - docker
+        - home
+    - role: docker/sshwifty
+      tags:
+        - docker
+        - home
+    - role: docker/uptime
+      tags:
+        - docker
+        - home
+    - role: docker/speedtest
+      tags:
+        - docker
+        - home
+
+    ## Media ##
+    - role: docker/qbittorrent
+      tags:
+        - docker
+        - media
+    - role: docker/plex
+      tags:
+        - docker
+        - media
+    - role: docker/jellyfin
+      tags:
+        - docker
+        - media
+    - role: docker/tautulli
+      tags:
+        - docker
+        - media
+    - role: docker/overseerr
+      tags:
+        - docker
+        - media
+    - role: docker/sonarr
+      tags:
+        - docker
+        - media
+    - role: docker/radarr
+      tags:
+        - docker
+        - media
+    - role: docker/4kradarr
+      tags:
+        - docker
+        - media
+    - role: docker/prowlarr
+      tags:
+        - docker
+        - media
+    - role: docker/bazarr
+      tags:
+        - docker
+        - media
+    - role: docker/autobrr
+      tags:
+        - docker
+        - media
+    - role: docker/xteve
+      tags:
+        - docker
+        - media
+    - role: docker/wrapperr
+      tags:
+        - docker
+        - media
+
+    ## Other ##
+    - role: docker/docker-gc
+      tags:
+        - docker
+        - other
+    - role: docker/teamspeak
+      tags:
+        - docker
+        - other
+    - role: docker/emulatorjs
+      tags:
+        - docker
+        - other
+    - role: docker/makemkv
+      tags:
+        - docker
+        - other
+    - role: docker/minecraft
+      tags:
+        - docker
+        - other
+    - role: docker/affine
+      tags:
+        - docker
+        - other
+    - role: docker/scrutiny
+      tags:
+        - docker
+        - other
+    - role: docker/watchtower
+      tags:
+        - docker
+        - other

@@ -1,0 +1,30 @@
+- name: Make sure the container is created and running - {{ container_name }}
+  community.docker.docker_container:
+    state: started # may be absent or started
+    name: "{{ container_name }}"
+    image: "dnsforge/{{ container_name }}:{{ image_tag }}"
+    pull: true
+    networks:
+      - name: "{{ main_network }}"
+    purge_networks: true
+    privileged: false
+    security_opts: no-new-privileges:true
+    restart_policy: unless-stopped
+    env:
+      "PUID": "{{ guid }}"
+      "PGID": "{{ guid }}"
+      "UMASK": "{{ umask }}"
+      "TZ": "{{ timezone }}"
+    volumes:
+      - "{{ docker_dir }}/{{ container_name }}/data/config:/home/{{ container_name }}/conf"
+      - "/etc/localtime:/etc/localtime:ro"
+    labels:
+      ## HTTP Routers
+      "traefik.enable": "true"
+      "traefik.http.routers.xteve-rtr.entrypoints": "web, websecure"
+      "traefik.http.routers.xteve-rtr.rule": "Host(`{{ container_name }}.{{ fqdn }}`)"
+      ## Middlewares
+      "traefik.http.routers.xteve-rtr.middlewares": "{{ 'chain-oauth@file' if oauth == true else 'chain-no-oauth@file' }}"
+      ## HTTP Services
+      "traefik.http.routers.xteve-rtr.service": "xteve-svc"
+      "traefik.http.services.xteve-svc.loadbalancer.server.port": "34400"

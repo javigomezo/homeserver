@@ -1,0 +1,17 @@
+- name: Harden ssh config
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: "{{ item.regexp }}"
+    line: " {{ item.line }}"
+    state: present
+    validate: 'sshd -t -f %s'
+  with_items:
+    - regexp: "^Port"
+      line: "Port {{ ssh_port }}"
+    - regexp: "^PermitRootLogin"
+      line: "PermitRootLogin no"
+    - regexp: "^PasswordAuthentication"
+      line: "PasswordAuthentication no"
+    - regexp: "^PubkeyAuthentication"
+      line: "PubkeyAuthentication yes"
+  notify: Restart ssh service

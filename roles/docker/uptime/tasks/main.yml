@@ -1,0 +1,30 @@
+- name: Make sure the container is created and running - {{ container_name }}
+  community.docker.docker_container:
+    state: started # may be absent or started
+    name: "{{ container_name }}"
+    image: "louislam/{{ container_name }}-kuma:{{ image_tag }}"
+    pull: true
+    networks:
+      - name: "{{ main_network }}"
+    purge_networks: true
+    privileged: false
+    security_opts: no-new-privileges:true
+    restart_policy: unless-stopped
+    env:
+      "PUID": "{{ guid }}"
+      "PGID": "{{ guid }}"
+      "UMASK": "{{ umask }}"
+      "TZ": "{{ timezone }}"
+    volumes:
+      - "{{ docker_dir }}/{{ container_name }}/data/config:/app/data"
+      - "/etc/localtime:/etc/localtime:ro"
+    labels:
+      ## HTTP Routers
+      "traefik.enable": "true"
+      "traefik.http.routers.uptime-rtr.entrypoints": "web, websecure"
+      "traefik.http.routers.uptime-rtr.rule": "Host(`{{ container_name }}.{{ fqdn }}`)"
+      ## Middlewares
+      "traefik.http.routers.uptime-rtr.middlewares": "{{ 'chain-oauth@file' if oauth == true else 'chain-no-oauth@file' }}"
+      ## HTTP Services
+      "traefik.http.routers.uptime-rtr.service": "uptime-svc"
+      "traefik.http.services.uptime-svc.loadbalancer.server.port": "3001"

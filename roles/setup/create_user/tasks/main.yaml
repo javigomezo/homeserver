@@ -1,0 +1,46 @@
+- name: Ensure sudo is installed
+  ansible.builtin.package:
+    name: sudo
+    state: present
+
+- name: Add default user to sudo group
+  ansible.builtin.user:
+    name: "{{ username }}"
+    password: "{{ password | password_hash('sha512') }}"
+    shell: "/bin/ash"
+    groups:
+      - "{{ sudo_group }}"
+    state: present
+    append: true
+
+- name: Chmod the user home directory
+  ansible.builtin.file:
+    path: "/home/{{ username }}"
+    state: directory
+    mode: 0755
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    recurse: true
+
+- name: Creating an empty file
+  ansible.builtin.file:
+    path: "/etc/sudoers.d/{{ sudo_group }}"
+    mode: 0600
+    owner: root
+    group: root
+    state: touch
+    modification_time: preserve
+    access_time: preserve
+
+- name: Allow sudo group to have passwordless sudo
+  ansible.builtin.lineinfile:
+    path: "/etc/sudoers.d/{{ sudo_group }}"
+    state: present
+    line: '%{{ sudo_group }} ALL=(ALL) NOPASSWD: ALL'
+    validate: '/usr/sbin/visudo -cf %s'
+
+- name: Copy the public SSH key
+  ansible.posix.authorized_key:
+    user: "{{ username }}"
+    state: present
+    key: "{{ ssh_public_key }}"

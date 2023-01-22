@@ -1,0 +1,4 @@
+---
+container_name: teamspeak
+image_tag: latest
+oauth: false

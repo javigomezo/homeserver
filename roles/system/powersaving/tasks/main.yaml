@@ -1,0 +1,53 @@
+---
+- name: Install linux-tools
+  when: ansible_facts["distribution"] == "Ubuntu"
+  ansible.builtin.package:
+    name:
+      - "linux-tools-{{ ansible_kernel }}"
+    state: present
+
+- name: Install powertop
+  ansible.builtin.package:
+    name:
+      - powertop
+    state: present
+
+- name: Install the systemd services
+  when: ansible_facts["distribution"] == "Ubuntu"
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: "/etc/systemd/system/{{ item | basename }}"
+    owner: root
+    group: root
+    mode: 0755
+  notify:
+    - Systemd reload
+  with_fileglob:
+    - files/*.service
+    - files/*.timer
+
+- name: Start and enable the systemd services
+  when: ansible_facts["distribution"] == "Ubuntu"
+  ansible.builtin.systemd:
+    state: started
+    enabled: true
+    name: "{{ item }}"
+  with_items:
+    - powertop.timer
+    - cpupower-min.timer
+
+- name: Install the OpenRC service
+  when: ansible_facts["distribution"] == "Alpine"
+  ansible.builtin.copy:
+    src: "files/disable-usb.start"
+    dest: "/etc/local.d/disable-usb.start"
+    owner: root
+    group: root
+    mode: 0744
+
+- name: Disable usb on boot
+  when: ansible_facts["distribution"] == "Alpine"
+  ansible.builtin.service:
+    name: local
+    state: started
+    enabled: true

@@ -1,0 +1,39 @@
+- name: Make sure the container is created and running - {{ container_name }}
+  community.docker.docker_container:
+    state: started # may be absent or started
+    name: "{{ container_name }}"
+    image: "itzg/{{ container_name }}:{{ image_tag }}"
+    pull: true
+    networks:
+      - name: "{{ main_network }}"
+    purge_networks: true
+    privileged: false
+    security_opts: no-new-privileges:true
+    restart_policy: unless-stopped
+    env:
+      "PUID": "{{ guid }}"
+      "PGID": "{{ guid }}"
+      "UMASK": "{{ umask }}"
+      "TZ": "{{ timezone }}"
+      "VERSION": "{{ minecraft_version }}"
+      "TYPE": "FABRIC"
+      "FABRIC_LOADER_VERSION": "{{ fabric_loader_version }}"
+      "EULA": "true"
+      "DIFFICULTY": "hard"
+      "ANNOUNCE_PLAYER_ACHIEVEMENTS": "true"
+      "ALLOW_NETHER": "true"
+      "MODE": "survival"
+      "WHITELIST": "{{ minecraft_allowlist }}"
+    volumes:
+      - "{{ docker_dir }}/minecraft/data/:/data"
+      - "/etc/localtime:/etc/localtime:ro"
+    labels:
+      ## HTTP Routers
+      "traefik.enable": "true"
+      "traefik.tcp.routers.minecraft-rtr.entrypoints": "minecraft"
+      "traefik.tcp.routers.minecraft-rtr.rule": "HostSNI(`*`)"
+      ## Middlewares
+      "traefik.http.routers.minecraft-rtr.middlewares": "{{ 'chain-oauth@file' if oauth == true else omit }}"
+      ## HTTP Services
+      "traefik.tcp.routers.minecraft-rtr.service": "minecraft-svc"
+      "traefik.tcp.services.minecraft-svc.loadbalancer.server.port": "{{ minecraft_port }}"

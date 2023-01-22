@@ -1,0 +1,4 @@
+---
+container_name: watchtower
+image_tag: latest
+oauth: false

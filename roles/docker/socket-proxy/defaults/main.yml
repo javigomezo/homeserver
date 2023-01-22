@@ -1,0 +1,4 @@
+---
+container_name: socket-proxy
+image_tag: latest
+oauth: false

@@ -1,0 +1,4 @@
+---
+container_name: jellyfin
+image_tag: latest
+oauth: false

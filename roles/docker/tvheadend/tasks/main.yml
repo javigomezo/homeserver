@@ -1,0 +1,46 @@
+- name: Create docker folders
+  ansible.builtin.file:
+    path: "{{ item }}"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: '0755'
+    state: directory
+  with_items:
+    - "{{ docker_dir }}/{{ container_name }}/data/config"
+    - "{{ docker_dir }}/{{ container_name }}/data/lists"
+
+- name: Copy channel list
+  ansible.builtin.template:
+    src: templates/channel_list
+    dest: "{{ docker_dir }}/{{ container_name }}/data/lists/{{ channel_list }}"
+    owner: "root"
+    group: "root"
+    mode: '0644'
+
+- name: Make sure the container is created and running - {{ container_name }}
+  community.docker.docker_container:
+    state: started # may be absent or started
+    name: "{{ container_name }}"
+    image: "{{ linuxserver_registry }}/{{ container_name }}:{{ image_tag }}"
+    pull: true
+    networks:
+      - name: "bridge"
+    purge_networks: true
+    privileged: false
+    security_opts: no-new-privileges:true
+    restart_policy: unless-stopped
+    env:
+      "PUID": "{{ guid }}"
+      "PGID": "{{ guid }}"
+      "UMASK": "{{ umask }}"
+      "TZ": "{{ timezone }}"
+    devices:
+      - /dev/dvb:/dev/dvb
+    published_ports:
+      - 9981:9981
+    volumes:
+      - "{{ docker_dir }}/{{ container_name }}/data/config:/config"
+      - "{{ docker_dir }}/{{ container_name }}/data/lists:/usr/share/tvheadend/data/dvb-scan/dvb-t:ro"
+    labels:
+      ## HTTP Routers
+      "traefik.enable": "false"

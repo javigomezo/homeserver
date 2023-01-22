@@ -1,0 +1,4 @@
+---
+container_name: uptime
+image_tag: latest
+oauth: true

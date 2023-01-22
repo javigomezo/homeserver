@@ -1,0 +1,8 @@
+---
+container_name: cf-ddns
+image_tag: latest # latest or develop
+oauth: false
+rrtype: A
+proxied: "true"
+delete_on_stop: "false"
+dns_server: 9.9.9.9

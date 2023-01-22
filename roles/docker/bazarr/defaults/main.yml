@@ -1,0 +1,4 @@
+---
+container_name: bazarr
+image_tag: latest
+oauth: true

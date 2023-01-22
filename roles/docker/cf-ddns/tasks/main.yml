@@ -1,0 +1,28 @@
+- name: Make sure the container is created and running - {{ container_name }}
+  community.docker.docker_container:
+    state: started # may be absent or started
+    name: "{{ container_name }}"
+    image: "oznu/cloudflare-ddns:{{ image_tag }}"
+    pull: true
+    networks:
+      - name: "{{ main_network }}"
+    purge_networks: true
+    privileged: false
+    security_opts: no-new-privileges:true
+    restart_policy: unless-stopped
+    env:
+      "PUID": "{{ guid }}"
+      "PGID": "{{ guid }}"
+      "UMASK": "{{ umask }}"
+      "TZ": "{{ timezone }}"
+      "API_KEY": "{{ cloudflare_api_key }}"
+      "ZONE": "{{ fqdn }}"
+      "PROXIED": "{{ proxied }}"
+      "RRTYPE": "{{ rrtype }}"
+      "DELETE_ON_STOP": "{{ delete_on_stop }}"
+      "DNS_SERVER": "{{ dns_server }}"
+    volumes:
+      - "/etc/localtime:/etc/localtime:ro"
+    labels:
+      ## HTTP Routers
+      "traefik.enable": "false"

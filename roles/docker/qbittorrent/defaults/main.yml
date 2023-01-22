@@ -1,0 +1,5 @@
+---
+container_name: qbittorrent
+image_tag: latest
+oauth: true
+webui_port: "8080"

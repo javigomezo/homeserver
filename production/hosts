@@ -1,0 +1,8 @@
+all:
+  hosts:
+    localhost:
+      ansible_connection: local
+    raspberry:
+      ansible_host: 10.0.0.3
+      ansible_user: "{{ username }}"
+      ansible_connection: ssh

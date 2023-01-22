@@ -1,0 +1,5 @@
+keepalived_state: "{{ 'BACKUP' if ansible_architecture == 'aarch64' else 'MASTER' }}"
+interface: "{{ 'wlan0' if ansible_architecture == 'aarch64' else 'eno1' }}"
+priority: "{{ '100' if ansible_architecture == 'aarch64' else '150' }}"
+src_ip: "{{ '10.0.0.3' if ansible_architecture == 'aarch64' else '10.0.0.2' }}"
+dst_ip: "{{ '10.0.0.2' if ansible_architecture == 'aarch64' else '10.0.0.3' }}"

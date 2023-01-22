@@ -1,0 +1,4 @@
+---
+container_name: tautulli
+image_tag: latest
+oauth: false

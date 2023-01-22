@@ -1,0 +1,4 @@
+---
+container_name: scrutiny
+image_tag: latest
+oauth: true

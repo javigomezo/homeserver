@@ -1,0 +1,4 @@
+---
+container_name: prowlarr
+image_tag: nightly # latest or develop
+oauth: true

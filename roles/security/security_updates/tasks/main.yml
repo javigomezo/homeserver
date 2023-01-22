@@ -1,0 +1,24 @@
+---
+- name: Update and upgrade apt packages (Debian and Ubuntu)
+  when: ansible_facts["distribution"] == "Ubuntu"
+  ansible.builtin.apt:
+    upgrade: true
+    autoremove: true
+    update_cache: true
+
+- name: Update repositories and install foo package
+  when: ansible_facts["distribution"] == "Alpine"
+  community.general.apk:
+    upgrade: true
+    update_cache: true
+
+- name: Check if reboot required
+  when: ansible_facts["distribution"] == "Ubuntu"
+  ansible.builtin.stat:
+    path: /var/run/reboot-required
+  register: reboot_required_file
+
+- name: Reboot if required
+  when: (ansible_facts["distribution"] == "Ubuntu" and reboot_required_file.stat.exists)
+  ansible.builtin.reboot:
+    msg: Rebooting due to a kernel update

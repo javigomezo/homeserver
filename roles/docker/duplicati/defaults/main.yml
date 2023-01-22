@@ -1,0 +1,4 @@
+---
+container_name: duplicati
+image_tag: latest
+oauth: true

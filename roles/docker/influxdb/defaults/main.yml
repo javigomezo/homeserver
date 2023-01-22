@@ -1,0 +1,4 @@
+---
+container_name: influxdb
+image_tag: alpine
+oauth: true

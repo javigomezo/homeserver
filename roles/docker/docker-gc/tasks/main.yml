@@ -1,0 +1,30 @@
+- name: Make sure the container is created and running - {{ container_name }}
+  community.docker.docker_container:
+    state: started # may be absent or started
+    name: "{{ container_name }}"
+    image: "clockworksoul/docker-gc-cron:{{ image_tag }}"
+    pull: true
+    networks:
+      - name: "{{ socket_network }}"
+    purge_networks: true
+    privileged: false
+    security_opts: no-new-privileges:true
+    restart_policy: unless-stopped
+    env:
+      "PUID": "{{ guid }}"
+      "PGID": "{{ guid }}"
+      "UMASK": "{{ umask }}"
+      "TZ": "{{ timezone }}"
+      "CRON": "0 7 0 * * ?" # Everyday at 07:00
+      "FORCE_IMAGE_REMOVAL": "1"
+      "FORCE_CONTAINER_REMOVAL": "0"
+      "GRACE_PERIOD_SECONDS": "3600" # 1h = 3600 seconds = 60*60
+      "DRY_RUN": "0"
+      "CLEAN_UP_VOLUMES": "1"
+      "DOCKER_HOST": "{{ socket_proxy }}"
+    volumes:
+      - "{{ docker_dir }}/{{ container_name }}/data/config/docker-gc-exclude:/etc/docker-gc-exclude"
+      - "/etc/localtime:/etc/localtime:ro"
+    labels:
+      ## HTTP Routers
+      "traefik.enable": "false"

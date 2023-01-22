@@ -1,0 +1,29 @@
+version: "3.7"
+services:
+  jellyfin:
+    image: ghcr.io/linuxserver/jellyfin:${IMAGETAG_PLEX}
+    container_name: jellyfin
+    networks:
+      - t2_proxy
+    env_file:
+      - ${HOMESERVER_DIR}/jellyfin/jellyfin.env
+    volumes:
+      - ${BASE_DIR}/jellyfin/data/config:/config
+      - ${MEDIA_DIR}:/data:ro
+      - /dev/shm:/transcoding
+    devices:
+      - /dev/dri:/dev/dri
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    labels:
+      ## HTTP Routers
+      - "traefik.enable=true"
+      - "traefik.http.routers.jellyfin-rtr.entrypoints=http,https"
+      - "traefik.http.routers.jellyfin-rtr.rule=Host(`jellyfin.${FQDN}`)"
+      ## Middlewares
+      - "traefik.http.routers.jellyfin-rtr.middlewares=chain-jellyfin@file"
+      ## HTTP Services
+      - "traefik.http.routers.jellyfin-rtr.service=jellyfin-svc"
+      - "traefik.http.services.jellyfin-svc.loadbalancer.server.port=8096"
+    

@@ -1,0 +1,4 @@
+---
+container_name: oauth
+image_tag: latest
+oauth: true

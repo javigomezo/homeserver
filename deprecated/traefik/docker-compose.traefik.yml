@@ -36,7 +36,7 @@ services:
       - --providers.docker.defaultrule=Host(`{{ index .Labels "com.docker.compose.service" }}.${FQDN}`)
       - --providers.docker.exposedByDefault=false
       # The line below turns on TLS by default and specifies TLS standards to use.
-      - --entrypoints.https.http.tls.options=default
+      - --entrypoints.https.http.tls.options=tls-options@file
       - --providers.docker.network=t2_proxy
       - --providers.docker.swarmMode=false
       - --providers.file.directory=/rules # Load dynamic configuration from one or more .toml or .yml files in a directory.

@@ -1,0 +1,31 @@
+- name: Make sure the container is created and running - {{ container_name }}
+  community.docker.docker_container:
+    state: started # may be absent or started
+    name: "{{ container_name }}"
+    image: "niruix/{{ container_name }}:{{ image_tag }}"
+    pull: true
+    networks:
+      - name: "{{ main_network }}"
+    purge_networks: true
+    privileged: false
+    security_opts: no-new-privileges:true
+    restart_policy: unless-stopped
+    env:
+      "PUID": "{{ guid }}"
+      "PGID": "{{ guid }}"
+      "UMASK": "{{ umask }}"
+      "TZ": "{{ timezone }}"
+      "SSHWIFTY_CONFIG": "/config/sshwifty.conf.json"
+    volumes:
+      - "{{ docker_dir }}/{{ container_name }}/data/config/:/config"
+      - "/etc/localtime:/etc/localtime:ro"
+    labels:
+      ## HTTP Routers
+      "traefik.enable": "true"
+      "traefik.http.routers.sshwifty-rtr.entrypoints": "web, websecure"
+      "traefik.http.routers.sshwifty-rtr.rule": "Host(`{{ container_name }}.{{ fqdn }}`)"
+      ## Middlewares
+      "traefik.http.routers.sshwifty-rtr.middlewares": "{{ 'chain-oauth@file' if oauth == true else 'chain-no-oauth@file' }}"
+      ## HTTP Services
+      "traefik.http.routers.sshwifty-rtr.service": "sshwifty-svc"
+      "traefik.http.services.sshwifty-svc.loadbalancer.server.port": "8182"
