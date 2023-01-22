@@ -1,0 +1,39 @@
+- name: Make sure the container is created and running - {{ container_name }}
+  community.docker.docker_container:
+    state: absent # may be absent or started
+    name: "{{ container_name }}"
+    image: "{{ linuxserver_registry }}/jellyfin:{{ image_tag }}"
+    pull: true
+    networks:
+      - name: "{{ main_network }}"
+    purge_networks: true
+    privileged: false
+    security_opts: no-new-privileges:true
+    restart_policy: unless-stopped
+    devices:
+      - "/dev/dri:/dev/dri"
+    env:
+      "PUID": "{{ guid }}"
+      "PGID": "{{ guid }}"
+      "UMASK": "{{ umask }}"
+      "TZ": "{{ timezone }}"
+      "VERSION": "latest"
+    mounts:
+      - type: "bind"
+        propagation: "rslave"
+        source: "{{ media_dir }}"
+        target: "/data"
+        read_only: true
+    volumes:
+      - "{{ docker_dir }}/{{ container_name }}/data/config:/config"
+      - "/etc/localtime:/etc/localtime:ro"
+    labels:
+      ## HTTP Routers
+      "traefik.enable": "true"
+      "traefik.http.routers.jellyfin-rtr.entrypoints": "web, websecure"
+      "traefik.http.routers.jellyfin-rtr.rule": "Host(`jellyfin.{{ fqdn }}`)"
+      ## Middlewares
+      "traefik.http.routers.jellyfin-rtr.middlewares": "{{ 'chain-oauth@file' if oauth == true else 'chain-no-oauth@file' }}"
+      ## HTTP Services
+      "traefik.http.routers.jellyfin-rtr.service": "jellyfin-svc"
+      "traefik.http.services.jellyfin-svc.loadbalancer.server.port": "8096"

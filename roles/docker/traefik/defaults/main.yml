@@ -1,0 +1,4 @@
+---
+container_name: traefik
+image_tag: banon
+oauth: true

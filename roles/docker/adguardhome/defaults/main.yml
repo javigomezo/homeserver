@@ -1,0 +1,8 @@
+---
+container_name: adguardhome
+container_sync_name: adguardhome-sync
+image_tag: latest
+oauth: true
+
+adguard_main_host: adguardhome
+adguard_replica_host: "10.0.0.3"

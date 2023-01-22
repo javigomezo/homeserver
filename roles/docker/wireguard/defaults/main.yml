@@ -1,0 +1,5 @@
+---
+container_name: wireguard
+image_tag: latest
+oauth: false
+peer_dns: auto

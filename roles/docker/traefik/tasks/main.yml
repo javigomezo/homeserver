@@ -1,0 +1,94 @@
+- name: Make sure the container is created and running - {{ container_name }}
+  community.docker.docker_container:
+    state: started # may be absent or started
+    name: "{{ container_name }}"
+    image: "{{ container_name }}:{{ image_tag }}"
+    pull: true
+    networks:
+      - name: "{{ main_network }}"
+      - name: "{{ socket_network }}"
+    purge_networks: true
+    privileged: true
+    security_opts: no-new-privileges:true
+    restart_policy: unless-stopped
+    command:
+      - --global.checkNewVersion=true
+      - --global.sendAnonymousUsage=false
+      - --entryPoints.web.address=:80
+      - --entryPoints.web.http.redirections.entryPoint.to=websecure
+      - --entrypoints.web.http.redirections.entryPoint.scheme=https
+      - --entrypoints.web.http.redirections.entrypoint.permanent=true
+      - --entryPoints.websecure.address=:443
+      - --experimental.http3=true
+      # - --entrypoints.websecure.http3=true
+      - --entrypoints.websecure.http3.advertisedport=443
+      - --entryPoints.minecraft.address=:{{ minecraft_port }}
+      - --entryPoints.teamspeak.address=:{{ ts3_port }}/udp
+      - --entrypoints.teamspeak.udp.timeout=10s
+      - --entryPoints.homeassistant.address=:{{ ha_port }}/udp
+      - --entrypoints.homeassistant.udp.timeout=10s
+      - --entryPoints.dns.address=:53/udp
+      - --entryPoints.qbittorrent.address=:{{ qbittorrent_port }}/tcp
+      - --entryPoints.wireguard.address=:{{ wireguard_port }}/udp
+      - --api=true
+      - --api.insecure=true
+      - --log=true
+      - --log.level=ERROR # (Default: error) DEBUG, INFO, WARN, ERROR, FATAL, PANIC
+      - --accessLog=true
+      - --accessLog.filePath=/traefik.log
+      - --accessLog.bufferingSize=100 # Configuring a buffer of 100 lines
+      - --accessLog.filters.statusCodes=400-499
+      - --providers.docker=true
+      - --providers.docker.endpoint={{ socket_proxy }}
+      - --providers.docker.exposedByDefault=false
+      # The line below turns on TLS by default and specifies TLS standards to use.
+      - --entrypoints.websecure.http.tls.options=tls-options@file
+      - --providers.docker.network={{ main_network }}
+      - --providers.docker.swarmMode=false
+      - --providers.file.directory=/rules # Load dynamic configuration from one or more .toml or .yml files in a directory.
+      - --providers.file.filename=/rules/dynamic.yml # Load dynamic configuration from a file.
+      - --providers.file.watch=true # Only works on top level files in the rules folder
+      - --entrypoints.websecure.http.tls.certresolver=dns-cloudflare
+      - --entrypoints.websecure.http.tls.domains[0].main={{ fqdn }}
+      - --entrypoints.websecure.http.tls.domains[0].sans=*.{{ fqdn }}
+      - --certificatesResolvers.dns-cloudflare.acme.dnschallenge=true
+      - --certificatesResolvers.dns-cloudflare.acme.dnschallenge.provider=cloudflare
+      - --certificatesResolvers.dns-cloudflare.acme.email={{ email }}
+      - --certificatesResolvers.dns-cloudflare.acme.storage=/acme.json
+      - --certificatesResolvers.dns-cloudflare.acme.dnschallenge.delaybeforecheck=90
+      - --certificatesResolvers.dns-cloudflare.acme.dnsChallenge.resolvers=1.1.1.1:53,8.8.8.8:53
+      # For cockpit
+      - --serverstransport.insecureskipverify=true
+    ports:
+      - "53:53/udp"
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+      - "{{ ts3_port }}:{{ ts3_port }}/udp"
+      - "{{ ha_port }}:{{ ha_port }}/udp"
+      - "{{ minecraft_port }}:{{ minecraft_port }}/tcp"
+      - "{{ qbittorrent_port }}:{{ qbittorrent_port }}/tcp"
+      - "{{ wireguard_port }}:{{ wireguard_port }}/udp"
+    env:
+      "PUID": "{{ guid }}"
+      "PGID": "{{ guid }}"
+      "UMASK": "{{ umask }}"
+      "TZ": "{{ timezone }}"
+      "CF_DNS_API_TOKEN": "{{ cf_dns_api_token }}"
+    volumes:
+      - "{{ docker_dir }}/{{ container_name }}/data/rules:/rules"
+      - "{{ docker_dir }}/{{ container_name }}/data/acme/acme.json:/acme.json"
+      - "{{ docker_dir }}/{{ container_name }}/logs/traefik.log:/traefik.log"
+      - "/etc/localtime:/etc/localtime:ro"
+    labels:
+      "traefik.enable": "true"
+      # HTTP Routers
+      "traefik.http.routers.traefik-rtr.entrypoints": "web, websecure"
+      "traefik.http.routers.traefik-rtr.rule": "Host(`traefik.{{ fqdn }}`)"
+      # - "traefik.http.routers.traefik-rtr.tls.certresolver=dns-ovh" # Comment out this line after first run of traefik to force the use of wildcard certs
+      "traefik.http.routers.traefik-rtr.tls.domains[0].main": "{{ fqdn }}"
+      "traefik.http.routers.traefik-rtr.tls.domains[0].sans": "*.{{ fqdn }}"
+      # Services - API
+      "traefik.http.routers.traefik-rtr.service": "api@internal"
+      ## Middlewares
+      "traefik.http.routers.traefik-rtr.middlewares": "{{ 'chain-oauth@file' if oauth == true else 'chain-no-oauth@file' }}"

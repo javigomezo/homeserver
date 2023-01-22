@@ -1,0 +1,4 @@
+---
+container_name: sonarr
+image_tag: develop # latest or develop
+oauth: true

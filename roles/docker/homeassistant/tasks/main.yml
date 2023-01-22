@@ -1,0 +1,64 @@
+- name: Make sure the container is created and running - mariadb
+  community.docker.docker_container:
+    state: started # may be absent or started
+    name: "ha_mariadb"
+    image: "mariadb:jammy"
+    pull: true
+    networks:
+      - name: "{{ main_network }}"
+    purge_networks: true
+    privileged: false
+    security_opts: no-new-privileges:true
+    restart_policy: unless-stopped
+    env:
+      "PUID": "{{ guid }}"
+      "PGID": "{{ guid }}"
+      "UMASK": "{{ umask }}"
+      "TZ": "{{ timezone }}"
+      "MYSQL_ROOT_PASSWORD": "{{ mysql_root_password }}"
+      "MYSQL_USER": "{{ mysql_user }}"
+      "MYSQL_PASSWORD": "{{ mysql_password }}"
+      "MYSQL_DATABASE": "{{ mysql_database }}"
+    volumes:
+      - "{{ docker_dir }}/ha_mariadb/data/config:/etc/mysql/conf.d"
+      - "{{ docker_dir }}/ha_mariadb/data/:/var/lib/mysql"
+      - "/etc/localtime:/etc/localtime:ro"
+    labels:
+      ## HTTP Routers
+      "traefik.enable": "false"
+
+- name: Make sure the container is created and running - {{ container_name }}
+  community.docker.docker_container:
+    state: started # may be absent or started
+    name: "{{ container_name }}"
+    image: "{{ linuxserver_registry }}/{{ container_name }}:{{ image_tag }}"
+    pull: true
+    networks:
+      - name: t2_proxy
+    purge_networks: true
+    privileged: false
+    security_opts: no-new-privileges:true
+    restart_policy: unless-stopped
+    env:
+      "PUID": "{{ guid }}"
+      "PGID": "{{ guid }}"
+      "UMASK": "{{ umask }}"
+      "TZ": "{{ timezone }}"
+      "DOCKER_MODS": "linuxserver/mods:homeassistant-hacs"
+    volumes:
+      - "{{ docker_dir }}/{{ container_name }}/data/config:/config"
+      - "/etc/localtime:/etc/localtime:ro"
+    labels:
+      ## HTTP Routers
+      "traefik.enable": "true"
+      "traefik.http.routers.homeassistant-rtr.entrypoints": "web, websecure"
+      "traefik.http.routers.homeassistant-rtr.rule": "Host(`{{ container_name }}.{{ fqdn }}`)"
+      ## Middlewares
+      "traefik.http.routers.homeassistant-rtr.middlewares": "{{ 'chain-oauth@file' if oauth == true else 'chain-no-oauth@file' }}"
+      ## HTTP Services
+      "traefik.http.routers.homeassistant-rtr.service": "homeassistant-svc"
+      "traefik.http.services.homeassistant-svc.loadbalancer.server.port": "8123"
+      ## UDP Routers
+      "traefik.udp.routers.ha-rtr.entrypoints": "homeassistant"
+      "traefik.udp.routers.ha-rtr.service": "ha-svc"
+      "traefik.udp.services.ha-svc.loadbalancer.server.port": "{{ ha_port }}"

@@ -1,0 +1,25 @@
+version: "3.7"
+services:
+  homeassistant:
+    image: ghcr.io/linuxserver/homeassistant:${IMAGETAG_HOMEASSISTANT}
+    container_name: homeassistant
+    networks:
+      - t2_proxy
+    env_file:
+      - ${HOMESERVER_DIR}/homeassistant/homeassistant.env
+    volumes:
+      - ${BASE_DIR}/homeassistant/data/config:/config
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    labels:
+      ## HTTP Routers
+      - "traefik.enable=true"
+      - "traefik.http.routers.ha-rtr.entrypoints=http,https"
+      - "traefik.http.routers.ha-rtr.rule=Host(`ha.${FQDN}`)"
+      ## Middlewares
+      - "traefik.http.routers.ha-rtr.middlewares=chain-oauth@file"
+      ## HTTP Services
+      - "traefik.http.routers.ha-rtr.service=ha-svc"
+      - "traefik.http.services.ha-svc.loadbalancer.server.port=8123"
+    

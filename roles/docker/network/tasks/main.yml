@@ -1,0 +1,11 @@
+- name: Make sure the container is created and running - {{ main_network }}
+  community.docker.docker_network:
+    name: "{{ main_network }}"
+    ipam_config:
+      - subnet: 10.0.123.0/24
+
+- name: Make sure the container is created and running - {{ proxy_network }}
+  community.docker.docker_network:
+    name: "{{ socket_network }}"
+    ipam_config:
+      - subnet: 10.0.124.0/24

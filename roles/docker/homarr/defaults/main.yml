@@ -1,0 +1,4 @@
+---
+container_name: homarr
+image_tag: latest
+oauth: true

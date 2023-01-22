@@ -1,0 +1,4 @@
+---
+container_name: affine
+image_tag: nightly-server-latest
+oauth: true

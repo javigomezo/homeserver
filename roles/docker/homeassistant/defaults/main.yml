@@ -1,0 +1,4 @@
+---
+container_name: homeassistant
+image_tag: latest
+oauth: false

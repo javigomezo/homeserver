@@ -1,0 +1,4 @@
+---
+container_name: emulatorjs
+image_tag: latest
+oauth: true

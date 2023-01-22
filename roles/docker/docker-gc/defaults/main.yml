@@ -1,0 +1,4 @@
+---
+container_name: docker-gc
+image_tag: latest
+oauth: false

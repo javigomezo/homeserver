@@ -1,0 +1,25 @@
+- name: Make sure the container is created and running - {{ container_name }}
+  community.docker.docker_container:
+    state: started # may be absent or started
+    name: "{{ container_name }}"
+    image: "containrrr/{{ container_name }}:{{ image_tag }}"
+    pull: true
+    networks:
+      - name: "{{ socket_network }}"
+    purge_networks: true
+    privileged: false
+    security_opts: no-new-privileges:true
+    restart_policy: unless-stopped
+    env:
+      "PUID": "{{ guid }}"
+      "PGID": "{{ guid }}"
+      "UMASK": "{{ umask }}"
+      "TZ": "{{ timezone }}"
+      "DOCKER_HOST": "{{ socket_proxy }}"
+      "WATCHTOWER_SCHEDULE": "0 5 * * *"
+      "WATCHTOWER_ROLLING_RESTART": "true"
+    volumes:
+      - "/etc/localtime:/etc/localtime:ro"
+    labels:
+      ## HTTP Routers
+      "traefik.enable": "false"

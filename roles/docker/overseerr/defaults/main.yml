@@ -1,0 +1,4 @@
+---
+container_name: overseerr
+image_tag: latest
+oauth: false

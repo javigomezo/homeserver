@@ -1,0 +1,31 @@
+- name: Ensure keepalived is installed
+  become: true
+  ansible.builtin.package:
+    name: keepalived
+    state: present
+
+- name: Create /etc/keepalived directory
+  become: true
+  ansible.builtin.file:
+    path: /etc/keepalived
+    state: directory
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Copy keepalived.conf file
+  become: true
+  ansible.builtin.template:
+    src: templates/keepalived.conf
+    dest: /etc/keepalived/keepalived.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify: Restart keepalived
+
+- name: Enable and start keepalived
+  become: true
+  ansible.builtin.service:
+    name: keepalived
+    enabled: true
+    state: started

@@ -1,0 +1,32 @@
+- name: Make sure the container is created and running - {{ container_name }}
+  community.docker.docker_container:
+    state: started # may be absent or started
+    name: "{{ container_name }}"
+    image: "ghcr.io/alexjustesen/{{ container_name }}:{{ image_tag }}"
+    pull: true
+    networks:
+      - name: "{{ main_network }}"
+    purge_networks: true
+    privileged: false
+    security_opts: no-new-privileges:true
+    restart_policy: unless-stopped
+    env:
+      "PUID": "{{ guid }}"
+      "PGID": "{{ guid }}"
+      "UMASK": "{{ umask }}"
+      "TZ": "{{ timezone }}"
+      "DISABLE_IPV6": "true"
+    volumes:
+      - "{{ docker_dir }}/{{ container_name }}/data/config:/config"
+      - "/etc/localtime:/etc/localtime:ro"
+    labels:
+      ## HTTP Routers
+      "traefik.enable": "true"
+      "traefik.http.routers.speedtest-rtr.entrypoints": "web, websecure"
+      "traefik.http.routers.speedtest-rtr.rule": "Host(`speedtest.{{ fqdn }}`)"
+      ## Middlewares
+      "traefik.http.routers.speedtest-rtr.middlewares": "{{ 'chain-oauth@file' if oauth == true else 'chain-no-oauth@file' }}"
+      ## HTTP Services
+      "traefik.http.routers.speedtest-rtr.service": "speedtest-svc"
+      "traefik.http.services.speedtest-svc.loadbalancer.server.port": "443"
+      "traefik.http.services.speedtest-svc.loadbalancer.server.scheme": "https"

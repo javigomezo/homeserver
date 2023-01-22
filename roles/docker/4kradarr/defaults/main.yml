@@ -1,0 +1,4 @@
+---
+container_name: radarr
+image_tag: latest # latest or develop
+oauth: true # may be absent or started

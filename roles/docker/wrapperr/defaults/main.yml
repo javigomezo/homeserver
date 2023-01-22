@@ -1,0 +1,4 @@
+---
+container_name: wrapperr
+image_tag: latest # latest or develop
+oauth: true

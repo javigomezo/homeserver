@@ -1,0 +1,4 @@
+---
+container_name: speedtest-tracker
+image_tag: latest
+oauth: true

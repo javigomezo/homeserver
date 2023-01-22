@@ -1,0 +1,12 @@
+---
+- name: Systemd reload
+  ansible.builtin.systemd:
+    daemon_reload: true
+    state: restarted
+    enabled: true
+    name: "{{ item }}"
+  with_items:
+    - powertop
+    - powertop.timer
+    - cpupower-min
+    - cpupower-min.timer

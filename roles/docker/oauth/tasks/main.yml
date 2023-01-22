@@ -1,0 +1,40 @@
+- name: Make sure the container is created and running - {{ container_name }}
+  community.docker.docker_container:
+    state: started # may be absent or started
+    name: "{{ container_name }}"
+    image: "thomseddon/traefik-forward-auth:{{ image_tag }}"
+    pull: true
+    networks:
+      - name: "{{ main_network }}"
+    purge_networks: true
+    privileged: false
+    security_opts: no-new-privileges:true
+    restart_policy: unless-stopped
+    env:
+      "PUID": "{{ guid }}"
+      "PGID": "{{ guid }}"
+      "UMASK": "{{ umask }}"
+      "TZ": "{{ timezone }}"
+      "CLIENT_ID": "{{ client_id }}"
+      "CLIENT_SECRET": "{{ client_secret }}"
+      "SECRET": "{{ secret }}"
+      "COOKIE_DOMAIN": "{{ cookie_domain }}"
+      "INSECURE_COOKIE": "{{ insecure_cookie }}"
+      "AUTH_HOST": "{{ auth_host }}"
+      "URL_PATH": "{{ url_path }}"
+      "WHITELIST": "{{ allowlist }}"
+      "LOG_LEVEL": "error"
+      "LOG_FORMAT": "text"
+      "LIFETIME": "2592000" # 30 days
+    volumes:
+      - "/etc/localtime:/etc/localtime:ro"
+    labels:
+      ## HTTP Routers
+      "traefik.enable": "true"
+      "traefik.http.routers.oauth-rtr.entrypoints": "web, websecure"
+      "traefik.http.routers.oauth-rtr.rule": "Host(`{{ container_name }}.{{ fqdn }}`)"
+      ## Middlewares
+      "traefik.http.routers.oauth-rtr.middlewares": "{{ 'chain-oauth@file' if oauth == true else 'chain-no-oauth@file' }}"
+      ## HTTP Services
+      "traefik.http.routers.oauth-rtr.service": "oauth-svc"
+      "traefik.http.services.oauth-svc.loadbalancer.server.port": "4181"

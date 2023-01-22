@@ -1,0 +1,41 @@
+- name: Make sure the container is created and running - {{ container_name }}
+  community.docker.docker_container:
+    state: started # may be absent or started
+    name: "{{ container_name }}"
+    image: "{{ linuxserver_registry }}/{{ container_name }}:{{ image_tag }}"
+    pull: true
+    networks:
+      - name: "{{ main_network }}"
+    purge_networks: true
+    privileged: false
+    security_opts: no-new-privileges:true
+    restart_policy: unless-stopped
+    env:
+      "PUID": "{{ guid }}"
+      "PGID": "{{ guid }}"
+      "UMASK": "{{ umask }}"
+      "TZ": "{{ timezone }}"
+      "SERVERURL": "{{ wireguard_url }}"
+      "SERVERPORT": "{{ wireguard_port }}"
+      "PEERS": "{{ wireguard_peers }}"
+      "PEERDNS": "{{ peer_dns }}"
+      "ALLOWEDIPS": "{{ wireguard_allowed_ips }}"
+      "INTERNAL_SUBNET": "{{ wireguard_internal_subnet }}"
+    dns_servers:
+      - "{{ wireguard_dns }}"
+    capabilities:
+      - NET_ADMIN
+      - SYS_MODULE
+    sysctls:
+      net.ipv4.conf.all.src_valid_mark: 1
+    volumes:
+      - "{{ docker_dir }}/{{ container_name }}/config:/config"
+      - "/lib/modules:/lib/modules"
+      - "/etc/localtime:/etc/localtime:ro"
+    labels:
+      "traefik.enable": "true"
+      ## UDP Routers
+      "traefik.udp.routers.wireguard-rtr.entrypoints": "wireguard"
+      ## UDP Services
+      "traefik.udp.routers.wireguard-rtr.service": "wireguard-svc"
+      "traefik.udp.services.wireguard-svc.loadbalancer.server.port": "{{ wireguard_port }}"

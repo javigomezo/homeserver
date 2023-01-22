@@ -1,0 +1,113 @@
+- name: Make sure the container is created and running - {{ container_name }}
+  when: ansible_architecture != "aarch64"
+  community.docker.docker_container:
+    state: started # may be absent or started
+    name: "{{ container_name }}"
+    image: "adguard/{{ container_name }}:{{ image_tag }}"
+    pull: true
+    networks:
+      - name: "{{ main_network }}"
+    purge_networks: true
+    privileged: false
+    security_opts: no-new-privileges:true
+    restart_policy: unless-stopped
+    env:
+      "PUID": "{{ guid }}"
+      "PGID": "{{ guid }}"
+      "UMASK": "{{ umask }}"
+      "TZ": "{{ timezone }}"
+    volumes:
+      - "{{ docker_dir }}/{{ container_name }}/data/workdir:/opt/{{ container_name }}/work"
+      - "{{ docker_dir }}/{{ container_name }}/config:/opt/{{ container_name }}/conf"
+      - "/etc/localtime:/etc/localtime:ro"
+    labels:
+      "traefik.enable": "true"
+      ## HTTP Routers
+      "traefik.http.routers.adguard-rtr.entrypoints": "web, websecure"
+      "traefik.http.routers.adguard-rtr.rule": "Host(`adguard.{{ fqdn }}`)"
+      ## Middlewares
+      "traefik.http.routers.adguard-rtr.middlewares": "{{ 'chain-oauth@file' if oauth == true else 'chain-no-oauth@file' }}"
+      ## HTTP Services
+      "traefik.http.routers.adguard-rtr.service": "adguard-svc"
+      "traefik.http.services.adguard-svc.loadbalancer.server.port": "3000"
+      ## UDP Routers
+      "traefik.udp.routers.adguard-rtr.entrypoints": "dns"
+      ## UDP Services
+      "traefik.udp.routers.adguard-rtr.service": "dns-svc"
+      "traefik.udp.services.dns-svc.loadbalancer.server.port": "53"
+
+- name: Create config directory
+  when: ansible_architecture != "aarch64"
+  ansible.builtin.file:
+    path: "{{ docker_dir }}/{{ container_sync_name }}/config/"
+    state: directory
+    owner: "{{ local_user }}"
+    group: "{{ local_user }}"
+    mode: "0700"
+
+- name: Copy adguardhome sync tempalte
+  when: ansible_architecture != "aarch64"
+  ansible.builtin.template:
+    src: templates/adguard-sync.yaml
+    dest: "{{ docker_dir }}/{{ container_sync_name }}/config/adguard-sync.yaml"
+    owner: "{{ local_user }}"
+    group: "{{ local_user }}"
+    mode: '0700'
+
+- name: Make sure the container is created and running - {{ container_sync_name }}
+  when: ansible_architecture != "aarch64"
+  community.docker.docker_container:
+    state: started # may be absent or started
+    name: "{{ container_sync_name }}"
+    image: "{{ linuxserver_registry }}/{{ container_sync_name }}:{{ image_tag }}"
+    pull: true
+    networks:
+      - name: "{{ main_network }}"
+    purge_networks: true
+    privileged: false
+    security_opts: no-new-privileges:true
+    restart_policy: unless-stopped
+    env:
+      "PUID": "{{ guid }}"
+      "PGID": "{{ guid }}"
+      "UMASK": "{{ umask }}"
+      "TZ": "{{ timezone }}"
+      "CONFIGFILE": "/config/adguard-sync.yaml"
+    volumes:
+      - "{{ docker_dir }}/{{ container_sync_name }}/config:/config"
+      - "/etc/localtime:/etc/localtime:ro"
+    labels:
+      "traefik.enable": "true"
+      ## HTTP Routers
+      "traefik.http.routers.adguard-sync-rtr.entrypoints": "web, websecure"
+      "traefik.http.routers.adguard-sync-rtr.rule": "Host(`adguard-sync.{{ fqdn }}`)"
+      ## Middlewares
+      "traefik.http.routers.adguard-sync-rtr.middlewares": "{{ 'chain-oauth@file' if oauth == true else 'chain-no-oauth@file' }}"
+      ## HTTP Services
+      "traefik.http.routers.adguard-sync-rtr.service": "adguard-sync-svc"
+      "traefik.http.services.adguard-sync-svc.loadbalancer.server.port": "8080"
+
+- name: Make sure the container replica is running- {{ container_name }}
+  when: ansible_architecture == "aarch64"
+  community.docker.docker_container:
+    state: started # may be absent or started
+    name: "{{ container_name }}"
+    image: "adguard/{{ container_name }}:{{ image_tag }}"
+    pull: true
+    networks:
+      - name: "bridge"
+    published_ports:
+      - 53:53/udp
+      - 3000:3000
+    purge_networks: true
+    privileged: false
+    security_opts: no-new-privileges:true
+    restart_policy: unless-stopped
+    env:
+      "PUID": "{{ guid }}"
+      "PGID": "{{ guid }}"
+      "UMASK": "{{ umask }}"
+      "TZ": "{{ timezone }}"
+    volumes:
+      - "{{ docker_dir }}/{{ container_name }}/data/workdir:/opt/{{ container_name }}/work"
+      - "{{ docker_dir }}/{{ container_name }}/config:/opt/{{ container_name }}/conf"

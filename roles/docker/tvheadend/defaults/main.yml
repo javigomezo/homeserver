@@ -1,0 +1,3 @@
+---
+container_name: tvheadend
+image_tag: latest

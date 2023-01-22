@@ -1,0 +1,35 @@
+- name: Make sure the container is created and running - {{ container_name }}
+  community.docker.docker_container:
+    state: started # may be absent or started
+    name: "{{ container_name }}"
+    image: "{{ container_name }}:{{ image_tag }}"
+    pull: true
+    networks:
+      - name: "{{ main_network }}"
+    purge_networks: true
+    privileged: false
+    security_opts: no-new-privileges:true
+    restart_policy: unless-stopped
+    env:
+      "PUID": "{{ guid }}"
+      "PGID": "{{ guid }}"
+      "UMASK": "{{ umask }}"
+      "TZ": "{{ timezone }}"
+      "DOCKER_INFLUXDB_INIT_MODE": "{{ docker_influxdb_init_mode }}"
+      "DOCKER_INFLUXDB_INIT_USERNAME": "{{ docker_influxdb_init_username }}"
+      "DOCKER_INFLUXDB_INIT_PASSWORD": "{{ docker_influxdb_init_password }}"
+      "DOCKER_INFLUXDB_INIT_ORG": "{{ docker_influxdb_init_org }}"
+      "DOCKER_INFLUXDB_INIT_BUCKET": "{{ docker_influxdb_init_bucket }}"
+    volumes:
+      - "{{ docker_dir }}/{{ container_name }}/data/data:/var/lib/influxdb2"
+      - "/etc/localtime:/etc/localtime:ro"
+    labels:
+      ## HTTP Routers
+      "traefik.enable": "true"
+      "traefik.http.routers.influx-rtr.entrypoints": "web, websecure"
+      "traefik.http.routers.influx-rtr.rule": "Host(`{{ container_name }}.{{ fqdn }}`)"
+      ## Middlewares
+      "traefik.http.routers.influx-rtr.middlewares": "{{ 'chain-oauth@file' if oauth == true else 'chain-no-oauth@file' }}"
+      ## HTTP Services
+      "traefik.http.routers.influx-rtr.service": "influx-svc"
+      "traefik.http.services.influx-svc.loadbalancer.server.port": "8086"
