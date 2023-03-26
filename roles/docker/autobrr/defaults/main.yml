@@ -1,4 +1,0 @@
----
-container_name: autobrr
-image_tag: latest # latest or develop
-oauth: true
