@@ -1,0 +1,36 @@
+- name: Create config directory
+  when: ansible_architecture != "aarch64"
+  ansible.builtin.file:
+    path: "{{ docker_dir }}/{{ container_name }}/config/"
+    state: directory
+    owner: "{{ local_user }}"
+    group: "{{ local_user }}"
+    mode: "0700"
+
+- name: Make sure the container replica is running- {{ container_name }}
+  when: ansible_architecture == "aarch64"
+  community.docker.docker_container:
+    state: started # may be absent or started
+    name: "{{ container_name }}"
+    image: "ghcr.io/seriousm4x/{{ container_name }}:{{ image_tag }}"
+    pull: true
+    networks:
+      - name: "host"
+    # published_ports:
+    #   - 8090:8090
+    purge_networks: true
+    privileged: false
+    security_opts: no-new-privileges:true
+    restart_policy: unless-stopped
+    env:
+      "PUID": "{{ guid }}"
+      "PGID": "{{ guid }}"
+      "UMASK": "{{ umask }}"
+      "TZ": "{{ timezone }}"
+      "DB_TYPE": "sqlite"
+      "UPSNAP_INTERVAL": "@every 10s"
+      "UPSNAP_SCAN_RANGE": "{{ local_network }}"  
+      "PASSWORD": "{{ password }}"  
+    volumes:
+      - "/home/{{ local_user }}/.ssh/:/.ssh:ro"
+      - "{{ docker_dir }}/{{ container_name }}/config:/app/pb_data"

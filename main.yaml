@@ -39,6 +39,9 @@
     - role: system/keepalived
       tags:
         - system
+    - role: docker/upsnap
+      tags:
+        - system
 
 - name: Main Playbook Homeserver
   hosts: localhost
@@ -144,10 +147,6 @@
         - docker
         - media
     - role: docker/bazarr
-      tags:
-        - docker
-        - media
-    - role: docker/autobrr
       tags:
         - docker
         - media
