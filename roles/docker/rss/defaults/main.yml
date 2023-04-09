@@ -1,0 +1,5 @@
+---
+container_name: fivefilters-full-text-rss
+second_container_name: freshrss
+image_tag: latest
+oauth: true

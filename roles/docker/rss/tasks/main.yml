@@ -1,0 +1,62 @@
+- name: Make sure the container is created and running - {{ container_name }}
+  community.docker.docker_container:
+    state: started # may be absent or started
+    name: "{{ container_name }}"
+    image: "heussd/{{ container_name }}:{{ image_tag }}"
+    pull: true
+    networks:
+      - name: "{{ main_network }}"
+    purge_networks: true
+    privileged: false
+    security_opts: no-new-privileges:true
+    restart_policy: unless-stopped
+    env:
+      "PUID": "{{ guid }}"
+      "PGID": "{{ guid }}"
+      "UMASK": "{{ umask }}"
+      "TZ": "{{ timezone }}"
+      "FTR_ADMIN_PASSWORD": "{{ ftr_admin_password }}"
+    volumes:
+      - "/etc/localtime:/etc/localtime:ro"
+    labels:
+      ## HTTP Routers
+      "traefik.enable": "true"
+      "traefik.http.routers.full-text-rss-rtr.entrypoints": "web, websecure"
+      "traefik.http.routers.full-text-rss-rtr.rule": "Host(`rss.{{ fqdn }}`)"
+      ## Middlewares
+      "traefik.http.routers.full-text-rss-rtr.middlewares": "{{ 'chain-oauth@file' if oauth == true else 'chain-no-oauth@file' }}"
+      ## HTTP Services
+      "traefik.http.routers.full-text-rss-rtr.service": "full-text-rss-svc"
+      "traefik.http.services.full-text-rss-svc.loadbalancer.server.port": "80"
+
+
+- name: Make sure the container is created and running - {{ second_container_name }}
+  community.docker.docker_container:
+    state: started # may be absent or started
+    name: "{{ second_container_name }}"
+    image: "{{ linuxserver_registry }}/{{ second_container_name }}:{{ image_tag }}"
+    pull: true
+    networks:
+      - name: "{{ main_network }}"
+    purge_networks: true
+    privileged: false
+    security_opts: no-new-privileges:true
+    restart_policy: unless-stopped
+    env:
+      "PUID": "{{ guid }}"
+      "PGID": "{{ guid }}"
+      "UMASK": "{{ umask }}"
+      "TZ": "{{ timezone }}"
+    volumes:
+      - "{{ docker_dir }}/{{ second_container_name }}/data/config:/config"
+      - "/etc/localtime:/etc/localtime:ro"
+    labels:
+      ## HTTP Routers
+      "traefik.enable": "true"
+      "traefik.http.routers.freshrss-rtr.entrypoints": "web, websecure"
+      "traefik.http.routers.freshrss-rtr.rule": "Host(`{{ second_container_name }}.{{ fqdn }}`)"
+      ## Middlewares
+      "traefik.http.routers.freshrss-rtr.middlewares": "{{ 'chain-oauth@file' if oauth == true else 'chain-no-oauth@file' }}"
+      ## HTTP Services
+      "traefik.http.routers.freshrss-rtr.service": "freshrss-svc"
+      "traefik.http.services.freshrss-svc.loadbalancer.server.port": "80"

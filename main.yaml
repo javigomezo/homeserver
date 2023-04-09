@@ -108,6 +108,10 @@
       tags:
         - docker
         - home
+    - role: docker/rss
+      tags:
+        - docker
+        - home
 
     ## Media ##
     - role: docker/qbittorrent
