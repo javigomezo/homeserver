@@ -1,7 +1,7 @@
 - name: Make sure the container is created and running - {{ container_name }}
   community.docker.docker_container:
     state: started # may be absent or started
-    name: "{{ container_name }}"
+    name: "rss"
     image: "heussd/{{ container_name }}:{{ image_tag }}"
     pull: true
     networks:
