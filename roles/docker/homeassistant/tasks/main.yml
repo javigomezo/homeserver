@@ -2,7 +2,7 @@
   community.docker.docker_container:
     state: started # may be absent or started
     name: "ha_mariadb"
-    image: "mariadb:jammy"
+    image: "{{ linuxserver_registry }}/mariadb:{{ image_tag }}"
     pull: true
     networks:
       - name: "{{ main_network }}"
