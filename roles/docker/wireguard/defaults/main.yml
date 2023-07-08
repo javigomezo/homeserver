@@ -1,5 +1,5 @@
 ---
-container_name: wireguard
+container_name: wg-easy
 image_tag: latest
-oauth: false
-peer_dns: auto
+oauth: true
+#peer_dns: auto
